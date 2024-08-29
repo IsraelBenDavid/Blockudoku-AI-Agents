@@ -23,6 +23,7 @@ def batch_size():
 
 
 
+
 class DoubleDeepQNetwork():
     def __init__(self, states, actions, alpha, gamma, epsilon,epsilon_min, epsilon_decay):
         self.nS = states
