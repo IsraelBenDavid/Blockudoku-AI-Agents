@@ -7,11 +7,11 @@ import random
 import numpy as np
 import time
 
-MOVEMENT_PUNISHMENT = -1
+MOVEMENT_PUNISHMENT = -1 * 0.5
 INVALID_MOVEMENT_PUNISHMENT = -10
 INVALID_PLACEMENT_PUNISHMENT = -10
 LOSE_PUNISHMENT = 0
-REWARD_PLACEMENT = 10
+REWARD_PLACEMENT = 10 * 2
 
 
 class Space:
@@ -186,7 +186,7 @@ class Blockudoku:
                 reward = INVALID_MOVEMENT_PUNISHMENT
 
         self._calculateState()
-        return self.state, reward, self.lost, {}
+        return self.state, reward, self.lost
 
     def _calculateState(self):
         # layer 1: filled cells
@@ -302,18 +302,21 @@ class Blockudoku:
         pg.draw.rect(screen, color, rect, 3)
 
 
-# game = Blockudoku()
-#
-# pg.init()
-#
-# screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
-#
-# game.seed(69)
-# game.setScreen(screen)
-#
-#
-# running = True
-# while running:
-#     running = game.play()
-#     game.render()
-# pg.quit()
+
+if __name__ == "__main__":
+    game = Blockudoku()
+
+    pg.init()
+
+    screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
+
+    game.seed(69)
+    game.setScreen(screen)
+
+
+    # game.render()
+    running = True
+    while running:
+        running = game.play()
+        # game.drawGameHeadless()
+    pg.quit()
