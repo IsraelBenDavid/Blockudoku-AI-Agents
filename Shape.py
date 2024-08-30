@@ -1,10 +1,12 @@
+import copy
+
 import pygame as pg
 import random
 from ShapesStructure import *
 
 
 class Shape:
-    def __init__(self, shape_ID=None, row=0, col=0):
+    def __init__(self, shape_ID=None, row=0, col=0, orientation=None):
 
         if shape_ID is None:
             shape_ID = random.randrange(0, TOTAL_SHAPES)
@@ -23,8 +25,24 @@ class Shape:
         self.orientations = shape["orientations"]
         self.placed = False
 
-        self.rotate()
+        self.rotate(n_times=orientation)
 
+    def __deepcopy__(self, memo):
+        # Create a new instance of Shape without initializing it fully
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+
+        # Copy each attribute
+        result.row = self.row
+        result.col = self.col
+        result.blocks = copy.deepcopy(self.blocks, memo)
+        result.width = self.width
+        result.height = self.height
+        result.orientations = self.orientations
+        result.placed = self.placed
+
+        return result
     def draw(self, screen, board_loc, cell_size, grid):
         if self.placed:
             return

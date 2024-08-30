@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 import time
@@ -91,8 +92,9 @@ class BaselineAgent:
         return torch.argmax(action_vals[0])
 
     def test_action(self, state):  # Exploit
-        action_vals = self.model(state)
-        return np.argmax(action_vals[0])
+        state = state.unsqueeze(0).to(device)
+        action_vals = self.model(state)  # Exploit: Use the NN to predict the correct action from this state
+        return torch.argmax(action_vals[0])
 
     def store(self, state, action, reward, nstate, done):
         # Store the experience in memory
@@ -138,8 +140,6 @@ class BaselineAgent:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
-
-
     def state_transform(self, state):
         # Reshape the state to add a batch dimension if necessary
         # temp = np.reshape(state, (self.state_size[0], self.state_size[1], self.state_size[2]))
@@ -154,7 +154,8 @@ class BaselineAgent:
         # tensor = tensor.unsqueeze(0)
 
         return tensor
-    def train(self, num_episodes, time_play, render=False):
+
+    def train(self, num_episodes, time_play, render=False, save=False):
         rewards = []  # Store rewards for graphing
         epsilons = []  # Store the Explore/Exploit
         if render:
@@ -168,7 +169,8 @@ class BaselineAgent:
             state = self.state_transform(state)  # Resize to store in memory to pass to .predict
             tot_rewards = 0
             done = False
-            for time in range(time_play):  # 200 is when you "solve" the game. This can continue forever as far as I know
+            for time in range(
+                    time_play):  # 200 is when you "solve" the game. This can continue forever as far as I know
                 action = self.action(state)
                 nstate, reward, done = self.env.step(action)
                 nstate = self.state_transform(nstate)
@@ -197,20 +199,27 @@ class BaselineAgent:
             print(f"total score = {self.env.score}")
             print("total reward = ", tot_rewards)
             print(f"last loss = {self.loss[-1]}")
-            game.reset()
+            self.env.reset()
             # Update the weights after each episode (You can configure this for x steps as well
             self.update_target_from_model()
-            # If our current NN passes we are done
-            # I am going to use the last 5 runs
+            if save:
+                self.save_model("checkpoints/baseline/model.pth")
 
-            # if len(rewards) > 5 and np.average(rewards[-5:]) > 195:
-            #     # Set the rest of the EPISODES for testing
-            #     TEST_Episodes = EPISODES - e
-            #     TRAIN_END = e
-            #     break
+    def save_model(self, filepath):
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        torch.save(self.model.state_dict(), filepath)
+
+    def load_model(self, filepath):
+        # Ensure the file exists before loading
+        if os.path.isfile(filepath):
+            self.model.load_state_dict(torch.load(filepath))
+            self.model.to(device)  # Move the model to the appropriate device (CPU/GPU)
+            print(f"Model loaded from {filepath}")
+        else:
+            print(f"File {filepath} does not exist. Cannot load the model.")
 
 
 if __name__ == "__main__":
     game = Engine.Blockudoku()
     agent = BaselineAgent(game, 1, 0.001, 0.995)
-    agent.train(10000, 250, render=False)
+    agent.train(100000, 1000, render=False, save=True)

@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 import time
@@ -22,8 +23,27 @@ N_BLOCKS = 5  # 2
 class QNetwork(nn.Module):
     def __init__(self, state_size, action_size):
         super(QNetwork, self).__init__()
+        self.model = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(state_size[0]*state_size[1]*state_size[2], 100),
+            nn.ReLU(),
+            nn.Linear(100, 80),
+            nn.ReLU(),
+            nn.Linear(80, 69),
+            nn.ReLU(),
+            nn.Linear(69, 40),
+            nn.ReLU(),
+            nn.Linear(40, 30),
+            nn.ReLU(),
+            nn.Linear(30, 24),
+            nn.ReLU(),
+            nn.Linear(24, action_size)
+        )
+
+
         self.first_fc_block = nn.Sequential(
-            nn.Linear(state_size, 256),
+            nn.Flatten(),
+            nn.Linear(state_size[0]*state_size[1]*state_size[2], 256),
             nn.ReLU()
         )
         self.blocks = nn.ModuleList()
@@ -50,168 +70,181 @@ class QNetwork(nn.Module):
         self.v_fc = nn.Linear(128, 1)
 
     def forward(self, state):
-        x = self.first_fc_block(state)
-        rec = x
-        for i in range(N_BLOCKS):
-            out = self.blocks[i](rec)
-            rec = out + rec
-        rec = self.action_block(rec)
-        action = self.action_fc(rec)
-        v = self.v_fc(rec)
-        return action + v
+        # x = self.first_fc_block(state)
+        # rec = x
+        # for i in range(N_BLOCKS):
+        #     out = self.blocks[i](rec)
+        #     rec = out + rec
+        # rec = self.action_block(rec)
+        # action = self.action_fc(rec)
+        # v = self.v_fc(rec)
+        # return action + v
+        return self.model(state)
 
 
+# STATE_SIZE = 162
+# ACTION_SIZE = 5
+DISCOUNT = 0.95
+LEARNING_RATE = 0.001
+BATCH_SIZE = 24
 STATE_SIZE = 162
 ACTION_SIZE = 5
 
 
 class QLAgent:
-    def __init__(self, env):
+    def __init__(self, env, epsilon, epsilon_min, epsilon_decay):
         self.env = env
-        self.qnetwork = QNetwork(STATE_SIZE, ACTION_SIZE).to(device)
-        self.target_qnet = QNetwork(STATE_SIZE, ACTION_SIZE).to(device)
-        self.target_qnet.load_state_dict(self.qnetwork.state_dict())
-        self.optimizer = optim.Adam(self.qnetwork.parameters(), lr=0.001)
-        self.memory = deque(maxlen=10000)  # Implement replay buffer here
-        self.gamma = 0.95  # Discount factor
-        self.epsilon = 1.0  # Exploration rate
-        self.total_loss = 0
+        self.state_size = (env.state.shape[2], env.state.shape[1], env.state.shape[0])
+        self.action_size = env.action_space.n  # Actions
 
-    def choose_action(self, state, test=False):
-        # Epsilon-greedy action selection
-        if random.random() < self.epsilon and not test:
-            return random.choice(range(ACTION_SIZE))
+        self.memory = deque([], maxlen=2500)
+        self.alpha = LEARNING_RATE
+        self.gamma = DISCOUNT
+        # Explore/Exploit
+        self.epsilon = epsilon
+        self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
+        self.model = QNetwork(self.state_size, self.action_size).to(device)
+        self.model_target = QNetwork(self.state_size, self.action_size).to(device)  # Second (target) neural network
+        self.update_target_from_model()  # Update weights
+        self.loss = []
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
 
-        self.qnetwork.eval()
-        # state = torch.FloatTensor(state).unsqueeze(0).to(device)  # Ensure the input is 2D (1, state_size)
-        state = torch.from_numpy(state).float()
-        with torch.no_grad():
-            q_values = self.qnetwork(state.to(device))
-        action = q_values.argmax().item()
+    def update_target_from_model(self):
+        for target_network_param, q_network_param in zip(self.model_target.parameters(),
+                                                         self.model.parameters()):
+            target_network_param.data.copy_(q_network_param.data)
 
-        return action
+    def action(self, state):
+        if np.random.rand() <= self.epsilon:
+            return random.randrange(self.action_size)  # Explore
+        state = state.unsqueeze(0).to(device)
+        action_vals = self.model(state)  # Exploit: Use the NN to predict the correct action from this state
+        return torch.argmax(action_vals[0])
 
-    def update_policy(self, batch_size):
-        # Sample a batch from memory
-        batch = random.sample(self.memory, batch_size)
-        # batch = self.memory
-        states = torch.tensor(np.array([s for s, _, _, _, _ in batch])).to(device).float()
-        actions = torch.tensor([a for _, a, _, _, _ in batch]).to(device).float()
-        rewards = torch.tensor([r for _, _, r, _, _ in batch]).to(device).float()
-        next_states = torch.tensor(np.array([ns for _, _, _, ns, _ in batch])).to(device).float()
-        dones = torch.tensor([d for _, _, _, _, d in batch], dtype=torch.float32).to(device).float()
+    def test_action(self, state):  # Exploit
+        state = state.unsqueeze(0).to(device)
+        action_vals = self.model(state)  # Exploit: Use the NN to predict the correct action from this state
+        return torch.argmax(action_vals[0])
 
-        # Compute the target Q-value
-        with torch.no_grad():
-            next_q_values = self.target_qnet(next_states).max(1)[0]
-            targets = rewards + self.gamma * next_q_values * (1 - dones)
+    def store(self, state, action, reward, nstate, done):
+        # Store the experience in memory
+        self.memory.append((state, action, reward, nstate, done))
 
-        self.qnetwork.train()
-        # Get current Q-value
-        # old_q_values = self.qnetwork(states).gather(1, actions.unsqueeze(1)).squeeze()
-        old_q_values = self.qnetwork(states).gather(1, actions.long().unsqueeze(1)).squeeze()
+    def experience_replay(self, batch_size):
+        # Assuming minibatch is a list of tuples: (state, action, reward, next_state, done)
+        minibatch = random.sample(self.memory, batch_size)
+        states, actions, rewards, next_states, dones = zip(*minibatch)
 
-        # Compute loss and optimize
-        loss = F.mse_loss(old_q_values, targets)
+        # Convert to tensors and move to the correct device
+        states = torch.stack(states).to(device)
+        actions = torch.tensor(actions).to(device)
+        rewards = torch.tensor(rewards).to(device)
+        next_states = torch.stack(next_states).to(device)
+        dones = torch.tensor(dones).float().to(device)
+
+        # Predictions for current and next states
+        st_predict = self.model(states)
+        nst_predict = self.model(next_states)
+        nst_predict_target = self.model_target(next_states)
+
+        # Double DQN: Using the online model to choose the best action for next state
+        nst_action_predict_model = nst_predict.max(1)[1]
+
+        # Calculate target values
+        targets = rewards + (1 - dones) * self.gamma * nst_predict_target.gather(1, nst_action_predict_model.unsqueeze(
+            1)).squeeze()
+
+        # Clone st_predict to avoid inplace operations
+        y = st_predict.clone()
+        y[range(batch_size), actions] = targets
+
+        # Compute the loss and perform backpropagation
+        loss = F.mse_loss(st_predict, y)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        self.total_loss += loss.item()
-        # print("loss = ", loss)
 
-    def train(self, episodes, batch_size, save=False, render=True):
-        n_steps = 0
+        self.loss.append(loss.item())
 
-        for episode in range(episodes):
-            print(f"----------------------------------------- episode = {episode}")
-            self.env.reset()
+        # Decay Epsilon
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+
+    def state_transform(self, state):
+        tensor = torch.from_numpy(state).float()
+        tensor = tensor.permute(2, 0, 1)
+        return tensor
+
+    def train(self, num_episodes, time_play, render=False, save=False, save_path=""):
+        rewards = []  # Store rewards for graphing
+        epsilons = []  # Store the Explore/Exploit
+        if render:
+            pg.init()
+            screen = pg.display.set_mode([int(self.env.window_size.x), int(self.env.window_size.y)])
+            self.env.setScreen(screen)
+        step_num = 0
+        for e in range(num_episodes):
+            print(f"----------------------------------------- episode = {e}")
+            if e % 3 == 0:
+                self.epsilon = 1.
             state = self.env.state
-            state = state.flatten()
-
-            game_over = False
-            total_reward = 0
-            curr_step = 0
-
-            while not game_over:
-                n_steps += 1
-                curr_step += 1
-                action = self.choose_action(state)
-                next_state, reward, game_over = self.env.step(action)
-                self.memory.append((state, action, reward, next_state.flatten(), game_over))
-                state = next_state.flatten()
-
-                total_reward += reward
+            state = self.state_transform(state)  # Resize to store in memory to pass to .predict
+            tot_rewards = 0
+            done = False
+            for time in range(time_play):  # 200 is when you "solve" the game. This can continue forever as far as I know
+                step_num += 1
+                action = self.action(state)
+                nstate, reward, done = self.env.step(action)
+                nstate = self.state_transform(nstate)
+                tot_rewards += reward
+                self.store(state, action, reward, nstate, done)  # Resize to store in memory to pass to .predict
+                state = nstate
 
                 if render:
                     self.env.drawGameHeadless()
                     pg.display.set_caption(f"reward: {str(reward)} "
-                                               f"epsilon: {self.epsilon:.3f} "
-                                               f"total: {total_reward:.3f} "
-                                           f"step: {curr_step}")
-                self.epsilon = max(0.01, self.epsilon * 0.99)
-                # self.epsilon = 0
-                if len(self.memory) > batch_size and n_steps % batch_size == 0:
-                    # print("--- training")
-                    self.total_loss = 0
-                    trains_iters = 10
-                    for _ in range(trains_iters):
-                        self.update_policy(batch_size)
-                    self.total_loss /= trains_iters
-                    # print(f"--- done training \n mean loss = {self.total_loss}")
+                                           f"epsilon: {self.epsilon:.3f} "
+                                           f"total: {tot_rewards:.3f} "
+                                           f"step: {time}")
 
-
-                if n_steps % (batch_size * 3) == 0 and save:
-                    self.save_model("checkpoints/qmodel_2.pth")
-
-                if n_steps % (batch_size * 6) == 0:
-                    self.epsilon = 1.
-
-                if curr_step == 1000 or game_over:
+                if done or time == time_play:
+                    rewards.append(tot_rewards)
+                    epsilons.append(self.epsilon)
+                    print("episode: {}/{}, score: {}, e: {}"
+                          .format(e, num_episodes, tot_rewards, self.epsilon))
                     break
-            if game_over:
+                # Experience Replay
+                if len(self.memory) > BATCH_SIZE and step_num % (BATCH_SIZE * 5):
+                    self.experience_replay(BATCH_SIZE)
+            if done:
                 print("LOST THE GAME")
             print(f"total score = {self.env.score}")
-            print("total reward = ", total_reward)
-            print(f"last loss = {self.total_loss}")
-            self.tau = 1.
-            for target_network_param, q_network_param in zip(self.target_qnet.parameters(),
-                                                             self.qnetwork.parameters()):
-                target_network_param.data.copy_(
-                    self.tau * q_network_param.data + (1.0 - self.tau) * target_network_param.data
-                )
-            # Decay epsilon to reduce exploration over time
-
+            print("total reward = ", tot_rewards)
+            print(f"last loss = {self.loss[-1]}")
+            self.env.reset()
+            # Update the weights after each episode (You can configure this for x steps as well
+            self.update_target_from_model()
+            if save:
+                self.save_model(save_path)
+                print("saved")
 
     def save_model(self, filepath):
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        torch.save(self.qnetwork.state_dict(), filepath)
-        # print("saved")
+        torch.save(self.model.state_dict(), filepath)
 
-    def load_checkpoint(self, filepath):
+    def load_model(self, filepath):
+        # Ensure the file exists before loading
         if os.path.isfile(filepath):
-            self.qnetwork.load_state_dict(torch.load(filepath))
-            # self.qnetwork.eval()  # Set the model to evaluation mode
-            print("Model loaded successfully from {}".format(filepath))
+            self.model.load_state_dict(torch.load(filepath))
+            self.model.to(device)  # Move the model to the appropriate device (CPU/GPU)
+            print(f"Model loaded from {filepath}")
         else:
-            print("No checkpoint found at {}".format(filepath))
+            print(f"File {filepath} does not exist. Cannot load the model.")
 
-
-import os
+print("updated")
 if __name__ == "__main__":
-    load = False
-    render = False
-    save = True
-    batch_size = 256
-    episodes = 10000000
-
     game = Engine.Blockudoku()
-    if render:
-        pg.init()
-        screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
-        game.setScreen(screen)
-
-    agent = QLAgent(game)
-    if load:
-        agent.load_checkpoint("checkpoints/qmodel.pth")
-
-    agent.train(episodes, batch_size, save=save, render=render)
+    agent = QLAgent(game, 1, 0.001, 0.995)
+    agent.train(100000, 1000,
+                render=False, save=True, save_path="checkpoints/ql_agent.pth")
