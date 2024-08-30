@@ -7,12 +7,9 @@ import random
 import numpy as np
 import time
 import itertools
+from MinMax_agent import MinmaxAgent, AlphaBetaAgent
 
-MOVEMENT_PUNISHMENT = -1  #* 0.5
-INVALID_MOVEMENT_PUNISHMENT = -10
-INVALID_PLACEMENT_PUNISHMENT = -10
-LOSE_PUNISHMENT = 0
-REWARD_PLACEMENT = 10 * 5
+from constants import *
 
 
 class Space:
@@ -41,6 +38,7 @@ class Blockudoku:
         self.state = np.zeros((9, 9, 2))
 
         if grid is None:
+            self.grid = []
             for r in range(9):
                 self.grid.append([])
                 for c in range(9):
@@ -71,7 +69,7 @@ class Blockudoku:
         # shapes the board can give
         valid_shapes = []
         for shape_ID in range(TOTAL_SHAPES):
-            for orientation in ShapesStructure().shapes[shape_ID]["orientations"]:
+            for orientation in range(ShapesStructure().shapes[shape_ID]["orientations"]):
                 valid_shapes.append((shape_ID, orientation))
         return valid_shapes
 
@@ -92,9 +90,12 @@ class Blockudoku:
                     valid_places.append((row, col))
         return valid_places
 
-    def apply_action(self, action):  # action is coordinate to place in (row, col)
+    def apply_action(self, action, render=False):  # action is coordinate to place in (row, col)
         self.current_shape.row = action[0]
         self.current_shape.col = action[1]
+        if render:
+            self.drawGameHeadless()
+            time.sleep(0.5)
         valid = self.current_shape.place(self.grid)
         if valid:
             reward = self._place_block() + REWARD_PLACEMENT
@@ -107,15 +108,17 @@ class Blockudoku:
         # opponent changes the shape
         self._place_shape(Shape(shape_ID=action[0], orientation=action[1]))
 
-
     def generate_successor(self, agent_index, action):
         # 1. copy the game
         # 2. apply the action of the agent on the new game
         # 3. return the new game
-        successor = Blockudoku(grid=self.grid.deepcopy(),
+
+        successor = Blockudoku(grid=copy.deepcopy(self.grid),
                                score=self.score,
                                shape=copy.deepcopy(self.current_shape),
                                lost=self.lost)
+        if action == STOP_ACTION:
+            return successor
         if agent_index == 0:
             successor.apply_action(action)
         elif agent_index == 1:
@@ -162,14 +165,7 @@ class Blockudoku:
                 if event.key == pg.K_UP:
                     self.step(4)
 
-        self.screen.fill((255, 255, 255))
-
-        self._drawCells(self.screen, self.grid, self.cell_size, self.board_loc)
-        self.current_shape.draw(self.screen, self.board_loc, self.cell_size, self.grid)
-        self._drawBorders(self.screen, self.cell_size, self.board_loc, self.board_size)
-        self._displayScore(self.screen)
-
-        pg.display.flip()
+        self.drawGameHeadless()
 
         return running
 
@@ -330,7 +326,7 @@ class Blockudoku:
         reward += self._place_shape(Shape())
         return reward
 
-    def _place_block(self):
+    def _place_block(self):  # agent step
         reward = 0
         reward += self._scoreBoard()
         if reward > 0:
@@ -344,12 +340,11 @@ class Blockudoku:
         self.score += reward
         return reward
 
-    def _place_shape(self, shape):
+    def _place_shape(self, shape):  # board step
         self.current_shape = shape
         if not self.current_shape.validSpaceExists(self.grid):
             self.lost = True
             return -LOSE_PUNISHMENT
-
 
     def _displayScore(self, screen):
         font = pg.font.SysFont(None, 44)
@@ -377,37 +372,61 @@ class Blockudoku:
         pg.draw.rect(screen, color, rect, 3)
 
 
-if __name__ == "__main__":
+def run_games(num_episodes, basic_agent, smart_agent):
+    scores = []
+
     game = Blockudoku()
+    for i in range(num_episodes):
+        game.reset()
+        steps = 0
+        while True:
+            valid_actions = game.get_agent_legal_actions()
+            if len(valid_actions) == 0: break
+            action = basic_agent.get_action(game) if len(valid_actions) > 10 else smart_agent.get_action(game)
+            game.apply_action(action, render=False)
+            game.apply_opponent_action(random.choice(game.get_opponent_legal_actions()))
+            steps += 1
+        print(f"episode: {i} | score: {game.score} | steps: {steps}")
+        scores.append(game.score)
 
+    # Print the results
+    print("Minimum score:", min(scores))
+    print("Maximum score:", max(scores))
+    print("Mean score:", sum(scores) / len(scores))
+
+
+def run_single_game():
+    basic_agent = AlphaBetaAgent(depth=1)
+    smart_agent = AlphaBetaAgent(depth=2)
+    game = Blockudoku()
     pg.init()
-
-    screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
-
-    # game.seed(69)
-    game.setScreen(screen)
-
-    # game.render()
+    game.setScreen(pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)]))
+    game.drawGameHeadless()
     running = True
     while running:
-        # user_input = input("Enter row and column separated by a space (e.g., 4 5): ")
-        #
-        # try:
-        #     row, col = map(int, user_input.split())
-        # except ValueError:
-        #     print("Invalid input. Please enter two numbers separated by a space.")
-        #     continue  # Skip this iteration and prompt the user again
 
-        # Play the game with the updated position
-        time.sleep(0.5)
-        places = game.valid_places()
-        if len(places) == 0:
-            break
-        rand_place = random.choice(places)
+        valid_actions = game.get_agent_legal_actions()
+        if len(valid_actions) == 0: break
+        if len(valid_actions) > 10:
+            # time.sleep(0.5)
+            # action = random.choice(valid_actions)
+            print("basic")
+            action = basic_agent.get_action(game)
+        else:
+            print("smart")
+            action = smart_agent.get_action(game)
+        game.apply_action(action, render=True)
 
-        game.place_in(rand_place)
+        random_op_action = random.choice(game.get_opponent_legal_actions())
+        game.apply_opponent_action(random_op_action)
         running = game.drawGameHeadless()
-
-        # running = game.play()
-        # print(game.current_shape.row, game.current_shape.col)
+    print(f"score: {game.score}")
     pg.quit()
+
+
+if __name__ == "__main__":
+    # run_single_game()
+    run_games(10, AlphaBetaAgent(depth=1), AlphaBetaAgent(depth=1))
+    run_games(10, AlphaBetaAgent(depth=1), AlphaBetaAgent(depth=2))
+
+
