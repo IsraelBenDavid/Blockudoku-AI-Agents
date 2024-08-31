@@ -117,7 +117,10 @@ class Shape:
         for block in self.blocks:
             block_row = self.row + block[0]
             block_col = self.col + block[1]
-            if not grid[block_row][block_col].empty:
+            try:
+                if not grid[block_row][block_col].empty:
+                    return False
+            except:
                 return False
         return True
 

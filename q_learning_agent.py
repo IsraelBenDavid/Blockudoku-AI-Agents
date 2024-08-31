@@ -10,40 +10,41 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from collections import deque
+import torch.nn.init as init
 
 import Engine
+import MinMaxEngine
 
 print(torch.cuda.is_available())
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # N_BLOCKS = 3 # 1
-N_BLOCKS = 5  # 2
+N_BLOCKS = 2  # 2
 
 
 class QNetwork(nn.Module):
     def __init__(self, state_size, action_size):
         super(QNetwork, self).__init__()
-        self.model = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(state_size[0]*state_size[1]*state_size[2], 100),
-            nn.ReLU(),
-            nn.Linear(100, 80),
-            nn.ReLU(),
-            nn.Linear(80, 69),
-            nn.ReLU(),
-            nn.Linear(69, 40),
-            nn.ReLU(),
-            nn.Linear(40, 30),
-            nn.ReLU(),
-            nn.Linear(30, 24),
-            nn.ReLU(),
-            nn.Linear(24, action_size)
-        )
-
+        # self.model = nn.Sequential(
+        #     nn.Flatten(),
+        #     nn.Linear(state_size[0]*state_size[1]*state_size[2], 100),
+        #     nn.ReLU(),
+        #     nn.Linear(100, 80),
+        #     nn.ReLU(),
+        #     nn.Linear(80, 69),
+        #     nn.ReLU(),
+        #     nn.Linear(69, 40),
+        #     nn.ReLU(),
+        #     nn.Linear(40, 30),
+        #     nn.ReLU(),
+        #     nn.Linear(30, 24),
+        #     nn.ReLU(),
+        #     nn.Linear(24, action_size)
+        # )
 
         self.first_fc_block = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(state_size[0]*state_size[1]*state_size[2], 256),
+            nn.Linear(state_size[0] * state_size[1] * state_size[2], 256),
             nn.ReLU()
         )
         self.blocks = nn.ModuleList()
@@ -61,41 +62,41 @@ class QNetwork(nn.Module):
                 nn.ReLU()
             ))
         self.action_block = nn.Sequential(
-                nn.Linear(256, 128),
-                nn.ReLU(),
-                nn.Linear(128, 128),
-                nn.ReLU(),
-            )
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU(),
+        )
         self.action_fc = nn.Linear(128, action_size)
         self.v_fc = nn.Linear(128, 1)
 
     def forward(self, state):
-        # x = self.first_fc_block(state)
-        # rec = x
-        # for i in range(N_BLOCKS):
-        #     out = self.blocks[i](rec)
-        #     rec = out + rec
-        # rec = self.action_block(rec)
-        # action = self.action_fc(rec)
-        # v = self.v_fc(rec)
-        # return action + v
-        return self.model(state)
+        x = self.first_fc_block(state)
+        rec = x
+        for i in range(N_BLOCKS):
+            out = self.blocks[i](rec)
+            rec = out + rec
+        rec = self.action_block(rec)
+        action = self.action_fc(rec)
+        v = self.v_fc(rec)
+        return action + v
+        # return self.model(state)
 
 
 # STATE_SIZE = 162
 # ACTION_SIZE = 5
-DISCOUNT = 0.95
+DISCOUNT = 0.0
 LEARNING_RATE = 0.001
 BATCH_SIZE = 24
 STATE_SIZE = 162
-ACTION_SIZE = 5
+ACTION_SIZE = 81
 
 
 class QLAgent:
     def __init__(self, env, epsilon, epsilon_min, epsilon_decay):
         self.env = env
         self.state_size = (env.state.shape[2], env.state.shape[1], env.state.shape[0])
-        self.action_size = env.action_space.n  # Actions
+        self.action_size = ACTION_SIZE  # Actions
 
         self.memory = deque([], maxlen=2500)
         self.alpha = LEARNING_RATE
@@ -110,16 +111,39 @@ class QLAgent:
         self.loss = []
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
 
+        # self.initialize_parameters_to_zero(self.model)
+        # self.initialize_parameters_to_zero(self.model_target)
+
+    def initialize_parameters_to_zero(self, model):
+        for param in model.parameters():
+            init.zeros_(param)
+
     def update_target_from_model(self):
         for target_network_param, q_network_param in zip(self.model_target.parameters(),
                                                          self.model.parameters()):
             target_network_param.data.copy_(q_network_param.data)
 
+    def get_legal_actions(self):
+        actions_tuples = self.env.get_agent_legal_actions()
+        actions = []
+        for act in actions_tuples:
+            actions.append((act[0] * 9) + act[1])
+        return actions
+
     def action(self, state):
+        legal_actions = self.get_legal_actions()
+        if len(legal_actions) == 0:
+            return 0
         if np.random.rand() <= self.epsilon:
-            return random.randrange(self.action_size)  # Explore
+            return random.choice(legal_actions)
         state = state.unsqueeze(0).to(device)
         action_vals = self.model(state)  # Exploit: Use the NN to predict the correct action from this state
+
+        # # Mask illegal actions by setting them to a very negative value
+        # masked_action_vals = torch.full_like(action_vals, float('-inf'))
+        # masked_action_vals[0][legal_actions] = action_vals[0][legal_actions]
+        # return torch.argmax(masked_action_vals[0])
+
         return torch.argmax(action_vals[0])
 
     def test_action(self, state):  # Exploit
@@ -168,13 +192,19 @@ class QLAgent:
         self.loss.append(loss.item())
 
         # Decay Epsilon
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+        self.epsilon = 0.2
+        # if self.epsilon > self.epsilon_min:
+        #     self.epsilon *= self.epsilon_decay
 
     def state_transform(self, state):
         tensor = torch.from_numpy(state).float()
         tensor = tensor.permute(2, 0, 1)
         return tensor
+
+    def action_transform(self, action):
+        row = action // 9
+        col = action % 9
+        return row, col
 
     def train(self, num_episodes, time_play, render=False, save=False, save_path=""):
         rewards = []  # Store rewards for graphing
@@ -192,12 +222,27 @@ class QLAgent:
             state = self.state_transform(state)  # Resize to store in memory to pass to .predict
             tot_rewards = 0
             done = False
-            for time in range(time_play):  # 200 is when you "solve" the game. This can continue forever as far as I know
+            invalid_steps = 0
+            total_steps = 0
+            for time in range(
+                    time_play):  # 200 is when you "solve" the game. This can continue forever as far as I know
                 step_num += 1
                 action = self.action(state)
-                nstate, reward, done = self.env.step(action)
-                nstate = self.state_transform(nstate)
+                # nstate, reward, done = self.env.step(action)
+                old_reward = self.env.score
+                nstate, reward, done, valid = self.env.apply_action(self.action_transform(action), render=render)
+                reward = (self.env.score - old_reward) * 10
+                if reward == 0:
+                    invalid_steps += 1
+                    reward = -1000
+
                 tot_rewards += reward
+
+                if valid:
+                    random_op_action = random.choice(self.env.get_opponent_legal_actions())
+                    nstate = self.env.apply_opponent_action(random_op_action)
+
+                nstate = self.state_transform(nstate)
                 self.store(state, action, reward, nstate, done)  # Resize to store in memory to pass to .predict
                 state = nstate
 
@@ -207,25 +252,28 @@ class QLAgent:
                                            f"epsilon: {self.epsilon:.3f} "
                                            f"total: {tot_rewards:.3f} "
                                            f"step: {time}")
-
-                if done or time == time_play:
+                if step_num % 1000 == 0: self.update_target_from_model()
+                if done or time == time_play - 1:
                     rewards.append(tot_rewards)
                     epsilons.append(self.epsilon)
-                    print("episode: {}/{}, score: {}, e: {}"
-                          .format(e, num_episodes, tot_rewards, self.epsilon))
+                    print("episode: {}/{}, score: {}, e: {}, steps: {}"
+                          .format(e, num_episodes, tot_rewards, self.epsilon, time))
                     break
                 # Experience Replay
-                if len(self.memory) > BATCH_SIZE and step_num % (BATCH_SIZE * 5):
+                if len(self.memory) > BATCH_SIZE and step_num % BATCH_SIZE:
                     self.experience_replay(BATCH_SIZE)
+                total_steps = time
             if done:
                 print("LOST THE GAME")
             print(f"total score = {self.env.score}")
+            print(f"invalid steps {invalid_steps / total_steps}")
             print("total reward = ", tot_rewards)
-            print(f"last loss = {self.loss[-1]}")
+            if len(self.loss) > 0:
+                print(f"last loss = {self.loss[-1]}")
             self.env.reset()
             # Update the weights after each episode (You can configure this for x steps as well
-            self.update_target_from_model()
-            if save:
+
+            if save and e % 20 == 0:
                 self.save_model(save_path)
                 print("saved")
 
@@ -242,9 +290,10 @@ class QLAgent:
         else:
             print(f"File {filepath} does not exist. Cannot load the model.")
 
+
 print("updated")
 if __name__ == "__main__":
-    game = Engine.Blockudoku()
-    agent = QLAgent(game, 1, 0.001, 0.995)
-    agent.train(100000, 1000,
-                render=False, save=True, save_path="checkpoints/ql_agent.pth")
+    game = MinMaxEngine.Blockudoku()
+    agent = QLAgent(game, 1, 0.1, 0.995)
+    agent.train(10000000, 200,
+                render=False, save=True, save_path="checkpoints/ql_agent/ql_agent_mm.pth")

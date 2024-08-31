@@ -138,3 +138,9 @@ class ShapesStructure:
             "orientations": 1,
             "name": "Plus5"
         }
+
+
+VALID_SHAPES = []
+for shape_ID in range(TOTAL_SHAPES):
+    for orientation in range(ShapesStructure().shapes[shape_ID]["orientations"]):
+        VALID_SHAPES.append((shape_ID, orientation))
