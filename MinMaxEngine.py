@@ -7,7 +7,7 @@ import random
 import numpy as np
 import time
 import itertools
-from MinMax_agent import MinmaxAgent, AlphaBetaAgent
+from MinMax_agent import MinmaxAgent, AlphaBetaAgent, ExpectimaxAgent
 
 from constants import *
 
@@ -92,7 +92,7 @@ class Blockudoku:
         try:
             if render and self.current_shape.isPlaceable(self.grid):
                 self.drawGameHeadless()
-                # time.sleep(0.5)
+                time.sleep(0.1)
             valid = self.current_shape.place(self.grid)
         except:
             valid = False
@@ -409,8 +409,8 @@ def run_single_game():
 
         valid_actions = game.get_agent_legal_actions()
         if len(valid_actions) == 0: break
-        if len(valid_actions) > 10:
-            # time.sleep(0.5)
+        if len(valid_actions) > 10 or len(valid_actions) == 1:
+            time.sleep(0.1)
             # action = random.choice(valid_actions)
             print("basic")
             action = basic_agent.get_action(game)
@@ -446,9 +446,11 @@ def run_random_game():
 
 
 if __name__ == "__main__":
-    # run_single_game()
-    run_games(10, AlphaBetaAgent(depth=1), AlphaBetaAgent(depth=2))
-    run_games(10, AlphaBetaAgent(depth=1), AlphaBetaAgent(depth=1))
+    run_single_game()
+    # run_games(10, AlphaBetaAgent(depth=2), AlphaBetaAgent(depth=2))
+    # run_games(10, ExpectimaxAgent(depth=1), ExpectimaxAgent(depth=2))
+    # run_games(10, AlphaBetaAgent(depth=1), AlphaBetaAgent(depth=2))
+    # run_games(10, AlphaBetaAgent(depth=1), AlphaBetaAgent(depth=1))
 
     # run_random_game()
 

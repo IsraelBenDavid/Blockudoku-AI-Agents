@@ -130,3 +130,43 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 min_score_action = curr_score
             if beta <= alpha: break
         return min_score_action
+
+
+class ExpectimaxAgent(MultiAgentSearchAgent):
+    """
+    Your expectimax agent (question 4)
+    """
+
+    def get_action(self, game_state):
+        """
+        Returns the expectimax action using self.depth and self.evaluationFunction
+
+        The opponent should be modeled as choosing uniformly at random from their
+        legal moves.
+        """
+        """*** YOUR CODE HERE ***"""
+        return self.player_move(game_state, self.depth)['action']
+
+    def player_move(self, game_state, depth):
+        actions = game_state.get_legal_actions(agent_index=PLAYER)
+        if depth == 0:
+            return {"action": STOP_ACTION, "score": self.evaluation_function(game_state)}
+        if len(actions) == 0:
+            return {"action": STOP_ACTION, "score": self.opponent_expected_move(game_state, depth)}
+        max_score_action = {"action": STOP_ACTION, "score": float('-inf')}
+        for action in actions:
+            curr_state = game_state.generate_successor(agent_index=PLAYER, action=action)
+            curr_score = self.opponent_expected_move(curr_state, depth)
+            if curr_score > max_score_action["score"]:
+                max_score_action["action"] = action
+                max_score_action["score"] = curr_score
+        return max_score_action
+
+    def opponent_expected_move(self, game_state, depth):
+        actions = game_state.get_legal_actions(agent_index=OPPONENT)
+        expected_score = 0
+        for action in actions:
+            curr_state = game_state.generate_successor(agent_index=OPPONENT, action=action)
+            curr_score = self.player_move(curr_state, depth - 1)['score']
+            expected_score += curr_score / len(actions)
+        return expected_score
