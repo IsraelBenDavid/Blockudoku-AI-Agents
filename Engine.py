@@ -6,12 +6,14 @@ from Shape import *
 import random
 import numpy as np
 import time
+from collections import deque
 
 MOVEMENT_PUNISHMENT = -1 #* 0.5
-INVALID_MOVEMENT_PUNISHMENT = -10
-INVALID_PLACEMENT_PUNISHMENT = -10
+INVALID_MOVEMENT_PUNISHMENT = -10 * 100
+INVALID_PLACEMENT_PUNISHMENT = -10 * 100
 LOSE_PUNISHMENT = 0
-REWARD_PLACEMENT = 10 * 5
+REWARD_PLACEMENT = 10 * 50
+REPEAT_MOVEMENT_PUNISHMENT = -10 * 10
 
 
 class Space:
@@ -48,6 +50,10 @@ class Blockudoku:
 
         self.action_space = Space(5, 0)
         self.observation_space = Space(2 ** len(self.state), self.state)
+
+
+        self.action_history = deque(maxlen=2)  # Store the last two actions
+        self.opposite_actions = {1: 3, 2: 4, 3: 1, 4: 2}  # Map opposite actions (Right-Left, Down-Up)
 
         # possible states:
         # * invalid cells
@@ -101,8 +107,7 @@ class Blockudoku:
         self._displayScore(self.screen)
 
         pg.display.flip()
-
-        return running
+        return running and not self.lost
 
     def render(self, mode='human'):
         board = np.zeros((9, 9))
@@ -162,11 +167,27 @@ class Blockudoku:
 
         return running
 
+    def get_agent_legal_actions(self):  # legal actions are the valid places to put
+        legal_actions = []
+        if self.current_shape.isPlaceable(self.grid):
+            legal_actions.append(0)
+        if self.current_shape.col + self.current_shape.width < 9:
+            legal_actions.append(1)
+        if self.current_shape.row + self.current_shape.height < 9:
+            legal_actions.append(2)
+        if self.current_shape.col > 0:
+            legal_actions.append(3)
+        if self.current_shape.row > 0:
+            legal_actions.append(4)
+        return legal_actions
+
     def step(self, action):
         if action == 0:  # place
             valid = self.current_shape.place(self.grid)
             if valid:
                 reward = self._blockPlaced() + REWARD_PLACEMENT
+                self.action_history.clear()
+
             else:
                 reward = INVALID_PLACEMENT_PUNISHMENT
 
@@ -182,8 +203,15 @@ class Blockudoku:
 
             if valid:
                 reward = MOVEMENT_PUNISHMENT
+
+                # Check if the current action cancels out the previous action
+                if len(self.action_history) > 0 and self.opposite_actions.get(action) == self.action_history[-1]:
+                    reward = REPEAT_MOVEMENT_PUNISHMENT  # Penalize for repeating actions that cancel each other
             else:
                 reward = INVALID_MOVEMENT_PUNISHMENT
+
+                # Update action history
+            self.action_history.append(action)
 
         self._calculateState()
         return self.state, reward, self.lost
@@ -302,21 +330,44 @@ class Blockudoku:
         pg.draw.rect(screen, color, rect, 3)
 
 
-
-if __name__ == "__main__":
+def run_previous_work():
+    from baseline_agent import BaselineAgent
     game = Blockudoku()
 
     pg.init()
 
     screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
 
-    game.seed(69)
     game.setScreen(screen)
-
+    agent = BaselineAgent(game, 1, 0.001, 0.995)
+    agent.load_model("checkpoints/baseline/model.pth")
 
     # game.render()
     running = True
+    i = 0
+    while running:
+        i += 1
+        if i % 100 == 0: return
+        time.sleep(0.02)
+        game.step(agent.test_action(game.state))
+        # running = game.play()
+        game.drawGameHeadless()
+    pg.quit()
+
+def play():
+    game = Blockudoku()
+    pg.init()
+    screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
+    game.setScreen(screen)
+    running = True
     while running:
         running = game.play()
-        # game.drawGameHeadless()
+    print("Game Over")
+    print(f"Your Score: {game.score}")
+    time.sleep(2)
     pg.quit()
+
+
+if __name__ == "__main__":
+    play()
+    run_previous_work()

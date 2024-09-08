@@ -26,21 +26,6 @@ ACTION_SIZE = 5
 class QNetwork(nn.Module):
     def __init__(self, state_size, action_size):
         super(QNetwork, self).__init__()
-        # self.model = nn.Sequential(
-        #     nn.Linear(state_size, 100),
-        #     nn.ReLU(),
-        #     nn.Linear(100, 80),
-        #     nn.ReLU(),
-        #     nn.Linear(80, 69),
-        #     nn.ReLU(),
-        #     nn.Linear(69, 40),
-        #     nn.ReLU(),
-        #     nn.Linear(40, 30),
-        #     nn.ReLU(),
-        #     nn.Linear(30, 24),
-        #     nn.ReLU(),
-        #     nn.Linear(24, action_size)
-        # )
         self.model = nn.Sequential(
             nn.Conv2d(in_channels=state_size[0], out_channels=16, kernel_size=3, padding=1),
             nn.ReLU(),
@@ -92,6 +77,7 @@ class BaselineAgent:
         return torch.argmax(action_vals[0])
 
     def test_action(self, state):  # Exploit
+        state = self.state_transform(state)
         state = state.unsqueeze(0).to(device)
         action_vals = self.model(state)  # Exploit: Use the NN to predict the correct action from this state
         return torch.argmax(action_vals[0])

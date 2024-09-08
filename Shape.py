@@ -84,6 +84,8 @@ class Shape:
         for block_i in range(len(self.blocks)):
             self.blocks[block_i] = (self.blocks[block_i][0]-minRow, self.blocks[block_i][1]-minCol)
 
+
+
     def moveRight(self):
         if self.col + self.width < 9:
             self.col += 1

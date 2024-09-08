@@ -1,44 +1,80 @@
 import random
-import sys
 import time
-
-import numpy as np
 import pygame as pg
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-from collections import deque
-
 import Engine
 from baseline_agent import BaselineAgent
-from q_learning_agent import QLAgent
 
-if __name__ == "__main__":
+import MinMaxEngine
+from policy_gradient_agent import PolicyGradientAgent
+
+
+def run_previous_work(render=True):
     game = Engine.Blockudoku()
-
-    pg.init()
-
-    screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
-
-    # game.seed(69)
-    game.setScreen(screen)
-
+    if render:
+        pg.init()
+        screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
+        game.setScreen(screen)
     agent = BaselineAgent(game, 1, 0.001, 0.995)
     agent.load_model("checkpoints/baseline/model.pth")
 
-    # agent = QLAgent(game, 1, 0.001, 0.995)
-    # agent.load_model("checkpoints/ql_agent/model.pth")
-
-    # game.render()
-    game_over = False
     running = True
-    while not game_over and running:
-        time.sleep(0.5)
-        state = agent.state_transform(game.state)
-        action = agent.test_action(state)
-        next_state, reward, game_over = game.step(action)
-        running = game.drawGameHeadless()
-        pg.display.set_caption(f"reward: {str(reward)}")
+    i = 0
+    while running:
+        i += 1
+        if i % 100 == 0: break
+        if render:
+            time.sleep(0.2)
+        game.step(agent.test_action(game.state))
+        if render:
+            game.drawGameHeadless()
 
+    if render:
+        pg.quit()
+
+    return game.score
+
+
+def run_pg_agent(render=True):
+    game = MinMaxEngine.Blockudoku()
+    agent = PolicyGradientAgent(None)
+    agent.load_model(f"checkpoints/pg_agent/pg_agent.pth")
+    if render:
+        pg.init()
+        game.setScreen(pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)]))
+        game.drawGameHeadless()
+    running = True
+    while running and not game.lost:
+        if render:
+            time.sleep(0.2)
+        action = agent.get_action(game)
+        game.apply_action(action, render=render)
+        random_op_action = random.choice(game.get_opponent_legal_actions())
+        game.apply_opponent_action(random_op_action)
+        if render:
+            running = game.drawGameHeadless()
+    if render:
+        pg.quit()
+    return game.score
+
+
+def human_play():
+    game = Engine.Blockudoku()
+    pg.init()
+    screen = pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)])
+    game.setScreen(screen)
+    running = True
+    while running:
+        running = game.play()
+    print("Game Over")
+    print(f"Your Score: {game.score}")
+    time.sleep(2)
     pg.quit()
+
+
+if __name__ == "__main__":
+    scores = []
+    for i in range(10):
+        scores.append(run_pg_agent(render=False))
+
+    print(sum(scores) / len(scores))
+
