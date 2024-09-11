@@ -5,11 +5,13 @@ from GridCell import *
 from Shape import *
 import random
 import numpy as np
-import time
 import itertools
 from MinMax_agent import MinmaxAgent, AlphaBetaAgent, ExpectimaxAgent
-
+import datetime
 from constants import *
+import csv
+import time
+import datetime
 
 
 class Space:
@@ -374,56 +376,42 @@ class Blockudoku:
         pg.draw.rect(screen, color, rect, 3)
 
 
-def run_games(num_episodes, basic_agent, smart_agent):
+def run_games(num_episodes, basic_agent, smart_agent, threshold, render=False):
     scores = []
-
     game = Blockudoku()
+
+    if render:
+        pg.init()
+        game.setScreen(pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)]))
+        game.drawGameHeadless()
+
     for i in range(1, num_episodes+1):
         game.reset()
         steps = 0
         while True:
             valid_actions = game.get_agent_legal_actions()
             if len(valid_actions) == 0: break
-            action = basic_agent.get_action(game) if len(valid_actions) > 10 else smart_agent.get_action(game)
-            game.apply_action(action, render=False)
+            if len(valid_actions) > threshold or len(valid_actions) == 1:
+                print("basic")
+                action = basic_agent.get_action(game)
+            else:
+                print("smart")
+                action = smart_agent.get_action(game)
+            game.apply_action(action, render=render)
             game.apply_opponent_action(random.choice(game.get_opponent_legal_actions()))
             steps += 1
+            if render:
+                running = game.drawGameHeadless()
+                if not running: break
+        if render:
+            pg.quit()
+
         print(f"episode: {i} | score: {game.score} | steps: {steps}")
         scores.append(game.score)
 
-    # Print the results
     print("Minimum score:", min(scores))
     print("Maximum score:", max(scores))
     print("Mean score:", sum(scores) / len(scores))
-
-
-def run_single_game():
-    basic_agent = AlphaBetaAgent(depth=1)
-    smart_agent = AlphaBetaAgent(depth=2)
-    game = Blockudoku()
-    pg.init()
-    game.setScreen(pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)]))
-    game.drawGameHeadless()
-    running = True
-    while running:
-
-        valid_actions = game.get_agent_legal_actions()
-        if len(valid_actions) == 0: break
-        if len(valid_actions) > 10 or len(valid_actions) == 1:
-            time.sleep(0.1)
-            # action = random.choice(valid_actions)
-            print("basic")
-            action = basic_agent.get_action(game)
-        else:
-            print("smart")
-            action = smart_agent.get_action(game)
-        game.apply_action(action, render=True)
-
-        random_op_action = random.choice(game.get_opponent_legal_actions())
-        game.apply_opponent_action(random_op_action)
-        running = game.drawGameHeadless()
-    print(f"score: {game.score}")
-    pg.quit()
 
 def run_random_game():
     game = Blockudoku()
@@ -443,15 +431,5 @@ def run_random_game():
         running = game.drawGameHeadless()
     print(f"score: {game.score}")
     pg.quit()
-
-
-if __name__ == "__main__":
-    run_single_game()
-    # run_games(10, AlphaBetaAgent(depth=2), AlphaBetaAgent(depth=2))
-    # run_games(10, ExpectimaxAgent(depth=1), ExpectimaxAgent(depth=2))
-    # run_games(10, AlphaBetaAgent(depth=1), AlphaBetaAgent(depth=2))
-    # run_games(10, AlphaBetaAgent(depth=1), AlphaBetaAgent(depth=1))
-
-    # run_random_game()
 
 

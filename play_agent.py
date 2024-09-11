@@ -33,7 +33,6 @@ def run_previous_work(render=True):
 
     return game.score
 
-
 def run_pg_agent(render=True):
     game = MinMaxEngine.Blockudoku()
     agent = PolicyGradientAgent(None)
@@ -56,7 +55,6 @@ def run_pg_agent(render=True):
         pg.quit()
     return game.score
 
-
 def human_play():
     game = Engine.Blockudoku()
     pg.init()
@@ -69,6 +67,7 @@ def human_play():
     print(f"Your Score: {game.score}")
     time.sleep(2)
     pg.quit()
+
 
 
 if __name__ == "__main__":

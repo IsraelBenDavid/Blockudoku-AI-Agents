@@ -1,7 +1,6 @@
 import copy
 
 import numpy as np
-
 from game import Action, OpponentAction
 
 DEFAULT_BOARD_SIZE = 4
@@ -32,6 +31,10 @@ class GameState(object):
     @property
     def board(self):
         return self._board
+
+    @property
+    def empty_tiles(self):
+        return self.get_empty_tiles()
 
     def get_legal_actions(self, agent_index):
         if agent_index == 0:
