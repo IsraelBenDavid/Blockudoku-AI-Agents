@@ -1,5 +1,8 @@
 import abc
 from constants import *
+import numpy as np
+import bli_balagan
+
 
 class Agent(object):
     def __init__(self):
@@ -11,6 +14,7 @@ class Agent(object):
 
     def stop_running(self):
         pass
+
 class MultiAgentSearchAgent(Agent):
     """
     This class provides some common elements to all of your
@@ -30,15 +34,44 @@ class MultiAgentSearchAgent(Agent):
         # self.evaluation_function = util.lookup(evaluation_function, globals())
         self.depth = depth
 
+    """
+    This evaluation function assesses the quality of a Blockudoku game state by considering the current score, 
+    the number of empty cells (with emphasis on the central area), and the potential to clear rows, columns, 
+    or 3x3 grids that are nearly full. It also accounts for placement flexibility by evaluating open spaces that could 
+    accommodate future pieces and the number of legal moves available to the agent. The function combines these 
+    factors with weighted importance to generate a score that aids in making optimal decisions during gameplay.
+    """
     def evaluation_function(self, game_state):
-        return game_state.score
+        score = game_state.score
+        empty_cells = sum(1 for row in game_state.grid for cell in row if cell.empty)
+        central_area = sum(1 for r in range(3, 6) for c in range(3, 6) if game_state.grid[r][c].empty)
+
+        # Clearing Potential
+        near_clears = 0
+        for i in range(9):
+            if sum(1 for cell in game_state.grid[i] if not cell.empty) == 8:
+                near_clears += 1
+            if sum(1 for j in range(9) if not game_state.grid[j][i].empty) == 8:
+                near_clears += 1
+        for square_row in range(0, 9, 3):
+            for square_col in range(0, 9, 3):
+                if sum(1 for r in range(3) for c in range(3) if
+                       not game_state.grid[square_row + r][square_col + c].empty) == 8:
+                    near_clears += 1
+
+        # Placement Flexibility
+        open_spaces = sum(1 for row in range(9) for col in range(9)
+                          if game_state.grid[row][col].empty and
+                          any(game_state.grid[row + i][col + j].empty for i in range(3) for j in range(3)))
+
+        # Placement Opportunities
+        possible_placements = len(game_state.get_agent_legal_actions())
+
+        return score + empty_cells * 2 + central_area * 3 + near_clears * 5 + open_spaces * 2 + possible_placements * 3
 
     @abc.abstractmethod
     def get_action(self, game_state):
         return
-
-
-
 
 
 class MinmaxAgent(MultiAgentSearchAgent):
@@ -87,7 +120,6 @@ class MinmaxAgent(MultiAgentSearchAgent):
             if curr_score < min_score_action:
                 min_score_action = curr_score
         return min_score_action
-
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
