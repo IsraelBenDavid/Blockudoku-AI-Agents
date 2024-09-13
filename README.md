@@ -124,10 +124,10 @@ pip install numpy pygame torch tensorflow keras matplotlib
   + `PolicyGradient`
 + `-bd`, `--basic_depth`: Depth for the basic agent's search algorithm. Default: `1`.
 + `-sa`, `--smart_agent`: Smart agent to use when the number of valid actions is below a threshold. Options are the same as `--basic_agent`. Default: `None`.
++ `-t`, `--threshold`: Threshold for switching from the basic agent to the smart agent. Default: `8`.
 + `-sd`, `--smart_depth`: Depth for the smart agent's search algorithm. Default: `2`.
 + `-n`, `--num_of_games`: Number of games to run. Default: `1`.
 + `-d`, `--display`: Display the game GUI. Use this flag to enable rendering.
-+ `-t`, `--threshold`: Threshold for switching from the basic agent to the smart agent. Default: `8`.
 
 ### Examples
 
