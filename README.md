@@ -4,21 +4,20 @@
 This project implements various AI agents to play Blockudoku, a puzzle game that combines elements of Sudoku and block puzzles. The objective of the game is to place blocks on a 9x9 grid, filling up rows, columns, or 3x3 squares to clear them from the board. By developing intelligent agents using different AI techniques, this project aims to explore and compare various algorithms in reinforcement learning and search strategies, providing insights into their effectiveness in solving complex problems.
 
 ## Table of Contents
-+ [Project Overview](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#project-overview)
-  + [Agents](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#agents)
-+ [File Structure](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#file-structure)
-+ [Installation](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#installation)
-  + [Prerequisites](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#prerequisites)
-  + [Dependencies](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#dependencies)
-  + [Steps](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#steps)
-+ [Usage](https://github.com/)
-  + [Command-Line Arguments](https://github.com/)
-  + [Examples](https://github.com/)
-  + [Additional Notes](https://github.com/)
-+ [Contributing](https://github.com/)
-  + [Reporting Bugs](https://github.com/)
-  + [Requesting Features](https://github.com/)
-+ [License](https://github.com/)
++ [Project Overview](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#project-overview)
+  + [Agents](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#agents)
++ [File Structure](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#file-structure)
++ [Installation](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#installation)
+  + [Prerequisites](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#prerequisites)
+  + [Dependencies](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#dependencies)
+  + [Steps](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#steps)
++ [Usage](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#usage)
+  + [Command-Line Arguments](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#command-line-arguments)
+  + [Examples](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#examples)
+  + [Additional Notes](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#additional-notes)
++ [Contributing](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#contributing)
+  + [Reporting Bugs](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#reporting-bugs)
+  + [Requesting Features](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#requesting-features)
 
 ## Project Overview
 ### Agents
