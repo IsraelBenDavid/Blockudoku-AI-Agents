@@ -159,3 +159,44 @@ python main.py Baseline
 + **Model Weights:** Ensure that the model weights are correctly loaded. Paths are defined in `Constants.py`. If you don't have pre-trained models, you may need to train the agents first.
 
 + **Threshold Parameter:** The `-t` or --threshold parameter determines when the game switches from using the basic agent to the smart agent based on the number of valid actions.
+
+## Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. **Fork the Repository:** Click on the 'Fork' button at the top right corner of the repository page.
+
+2. **Create a Branch:** Create a new branch for your feature or bug fix.
+
+```bash
+git checkout -b feature/YourFeature
+```
+
+3. **Commit Your Changes:** Make sure to write clear and descriptive commit messages.
+
+```bash
+git commit -am 'Add new feature'
+```
+
+4. **Push to the Branch:**
+
+```bash
+git push origin feature/YourFeature
+```
+
+5. **Open a Pull Request:** Go to the repository on GitHub and open a pull request.
+
+### Reporting Bugs
+
++ **Open an Issue:** Describe the bug in detail.
++ **Provide Steps to Reproduce:** Include information about your environment and how to reproduce the issue.
++ **Include Logs or Screenshots:** If applicable, provide any relevant logs or screenshots.
+
+### Requesting Features
+
++ **Open an Issue with the Label** `enhancement`: Clearly describe the feature you are requesting.
++ **Explain the Use Case:** Provide context on why the feature would be beneficial.
+
+## License
+
+This project is licensed under [Your License Here]. Please specify the licensing terms of your project, including any restrictions on commercial use or modification.
