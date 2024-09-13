@@ -5,8 +5,8 @@ This project implements various AI agents to play Blockudoku, a puzzle game that
 
 ## Table of Contents
 + [Project Overview](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#project-overview)
-  + [Agents](https://github.com/)
-+ [File Structure](https://github.com/)
+  + [Agents](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#agents)
++ [File Structure](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#file-structure)
 + [Installation](https://github.com/)
   + [Prerequisites](https://github.com/)
   + [Dependencies](https://github.com/)
@@ -33,3 +33,33 @@ The project includes several AI agents implementing different algorithms:
 + KerasBaselineAgent: An alternative DQN implementation using Keras (TensorFlow), serving as a comparison point for the PyTorch-based BaselineAgent.
 
 These agents interact with the game environment to make decisions, learn from experiences, and improve their gameplay over time. By comparing these different approaches, the project highlights the strengths and weaknesses of each algorithm in the context of the Blockudoku game.
+
+## File Structure
+
++ [main.py](main.py): Entry point of the application. Parses command-line arguments and initializes agents and game settings.
+
++ [Engine.py](Engine.py): Defines the game environment, including logic, state representation, and rendering.
+
++ [BaselineEngine.py](BaselineEngine.py): Variant of the game engine used by the BaselineAgent.
+
++ [BaselineAgent.py](BaselineAgent.py): Implements the DQN agent using PyTorch.
+
++ [PolicyGradientAgent.py](PolicyGradientAgent.py): Implements the Policy Gradient agent using PyTorch.
+
++ [PolicyNetwork.py](PolicyNetwork.py): Defines the neural network architecture for the PolicyGradientAgent.
+
++ [MinMaxAgent.py](MinMaxAgent.py): Contains Minimax-based agents, including AlphaBetaAgent and ExpectimaxAgent.
+
++ [PlayAgents.py](PlayAgents.py): Provides functions to run games with different agents and handle user interaction.
+
++ [GridCell.py](GridCell.py): Defines properties and behaviors of individual cells in the game grid.
+
++ [Shape.py](Shape.py): Defines the shapes that appear in the game and their interactions with the grid.
+
++ [ShapesStructure.py](ShapesStructure.py): Contains structures and possible orientations of all shapes used in the game.
+
++ [Constants.py](Constants.py): Contains global constants and configurations used throughout the project.
+
++ [KerasBaselineAgent.py](KerasBaselineAgent.py): Earlier DQN implementation using Keras (TensorFlow).
+
++ [README.md](README.md): Documentation and instructions for the project.
