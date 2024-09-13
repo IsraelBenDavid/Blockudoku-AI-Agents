@@ -151,6 +151,11 @@ python3 main.py AI_agent -ba PolicyGradient -n 10
 python3 main.py Baseline
 ```
 
++ **Run the Game with the AlphaBeta Agent at Depth 1 as the Basic Agent, and the Expectimax Agent at Depth 2 as the Smart Agent**
+```bash
+python3 main.py AI_agent -ba AlphaBeta -bd 1 -sa Expectimax -sd 2
+```
+
 ### Additional Notes
 
 + **Rendering:** Enabling rendering with the -d flag will slow down the game due to graphical processing. For faster execution, especially during training, run the game without rendering.
