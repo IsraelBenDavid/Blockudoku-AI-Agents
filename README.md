@@ -109,3 +109,27 @@ pip install numpy pygame torch tensorflow keras matplotlib
 4. **Prepare Model Weights**
 + For `BaselineAgent` and `PolicyGradientAgent`, ensure that the model weight files are placed in the appropriate `checkpoints/` directory as specified in `Constants.py`.
 + Download pre-trained models or train new models using the provided training scripts.
+
+## Usage
+### Command-Line Arguments
+
++ `game`: Type of play to run. Options:
+  + `Manual`: Play the game manually.
+  + `AI_agent`: Play the game using AI agents.
+  + `Random`: Play the game with random actions.
+  + `Baseline`: Run the baseline models.
++ `-ba`, `--basic_agent`: Basic agent to use. Options:
+  + `MiniMax`
+  + `AlphaBeta`
+  + `Expectimax`
+  + `PolicyGradient`
++ `-bd`, `--basic_depth`: Depth for the basic agent's search algorithm. Default: `1`.
++ `-sa`, `--smart_agent`: Smart agent to use when the number of valid actions is below a threshold. Options are the same as `--basic_agent`. Default: `None`.
++ `-sd`, `--smart_depth`: Depth for the smart agent's search algorithm. Default: `2`.
++ `-n`, `--num_of_games`: Number of games to run. Default: `1`.
++ `-d`, `--display`: Display the game GUI. Use this flag to enable rendering.
++ `-t`, `--threshold`: Threshold for switching from the basic agent to the smart agent. Default: `8`.
+
+### Examples
+
+### Additional Notes
