@@ -7,9 +7,9 @@ This project implements various AI agents to play Blockudoku, a puzzle game that
 + [Project Overview](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#project-overview)
   + [Agents](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#agents)
 + [File Structure](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#file-structure)
-+ [Installation](https://github.com/)
-  + [Prerequisites](https://github.com/)
-  + [Dependencies](https://github.com/)
++ [Installation](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#installation)
+  + [Prerequisites](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#prerequisites)
+  + [Dependencies](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#dependencies)
   + [Steps](https://github.com/)
 + [Usage](https://github.com/)
   + [Command-Line Arguments](https://github.com/)
@@ -36,30 +36,73 @@ These agents interact with the game environment to make decisions, learn from ex
 
 ## File Structure
 
-+ [main.py](main.py): Entry point of the application. Parses command-line arguments and initializes agents and game settings.
++ [`main.py`](main.py): Entry point of the application. Parses command-line arguments and initializes agents and game settings.
 
-+ [Engine.py](Engine.py): Defines the game environment, including logic, state representation, and rendering.
++ [`Engine.py`](Engine.py): Defines the game environment, including logic, state representation, and rendering.
 
-+ [BaselineEngine.py](BaselineEngine.py): Variant of the game engine used by the BaselineAgent.
++ [`BaselineEngine.py`](BaselineEngine.py): Variant of the game engine used by the BaselineAgent.
 
-+ [BaselineAgent.py](BaselineAgent.py): Implements the DQN agent using PyTorch.
++ [`BaselineAgent.py`](BaselineAgent.py): Implements the DQN agent using PyTorch.
 
-+ [PolicyGradientAgent.py](PolicyGradientAgent.py): Implements the Policy Gradient agent using PyTorch.
++ [`PolicyGradientAgent.py`](PolicyGradientAgent.py): Implements the Policy Gradient agent using PyTorch.
 
-+ [PolicyNetwork.py](PolicyNetwork.py): Defines the neural network architecture for the PolicyGradientAgent.
++ [`PolicyNetwork.py`](PolicyNetwork.py): Defines the neural network architecture for the PolicyGradientAgent.
 
-+ [MinMaxAgent.py](MinMaxAgent.py): Contains Minimax-based agents, including AlphaBetaAgent and ExpectimaxAgent.
++ [`MinMaxAgent.py`](MinMaxAgent.py): Contains Minimax-based agents, including AlphaBetaAgent and ExpectimaxAgent.
 
-+ [PlayAgents.py](PlayAgents.py): Provides functions to run games with different agents and handle user interaction.
++ [`PlayAgents.py`](PlayAgents.py): Provides functions to run games with different agents and handle user interaction.
 
-+ [GridCell.py](GridCell.py): Defines properties and behaviors of individual cells in the game grid.
++ [`GridCell.py`](GridCell.py): Defines properties and behaviors of individual cells in the game grid.
 
-+ [Shape.py](Shape.py): Defines the shapes that appear in the game and their interactions with the grid.
++ [`Shape.py`](Shape.py): Defines the shapes that appear in the game and their interactions with the grid.
 
-+ [ShapesStructure.py](ShapesStructure.py): Contains structures and possible orientations of all shapes used in the game.
++ [`ShapesStructure.py`](ShapesStructure.py): Contains structures and possible orientations of all shapes used in the game.
 
-+ [Constants.py](Constants.py): Contains global constants and configurations used throughout the project.
++ [`Constants.py`](Constants.py): Contains global constants and configurations used throughout the project.
 
-+ [KerasBaselineAgent.py](KerasBaselineAgent.py): Earlier DQN implementation using Keras (TensorFlow).
++ [`KerasBaselineAgent.py`](KerasBaselineAgent.py): Earlier DQN implementation using Keras (TensorFlow).
 
-+ [README.md](README.md): Documentation and instructions for the project.
++ [`README.md`](README.md): Documentation and instructions for the project.
+
+## Installation
+### Prerequisites
+
++ **Python 3.6** or higher
++ **pip** package installer
+
+### Dependencies
+
++ `numpy`
++ `pygame`
++ `torch` (PyTorch)
++ `tensorflow` and `keras` (for `KerasBaselineAgent.py`)
++ `matplotlib` (optional, for plotting and visualization)
+
+### Steps
+
+#### 1. Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/blockudoku-ai.git
+cd blockudoku-ai```
+
+#### 2. Create a Virtual Environment (optional but recommended)
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+
+3. Install Required Packages
+
+```bash
+pip install -r requirements.txt
+
+If requirements.txt is not available, install packages manually:
+
+```bash
+pip install numpy pygame torch tensorflow keras matplotlib
+
+4. Prepare Model Weights
+
+    For BaselineAgent and PolicyGradientAgent, ensure that the model weight files are placed in the appropriate checkpoints/ directory as specified in Constants.py.
+    Download pre-trained models or train new models using the provided training scripts.
