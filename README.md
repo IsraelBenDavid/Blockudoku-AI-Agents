@@ -196,7 +196,3 @@ git push origin feature/YourFeature
 
 + **Open an Issue with the Label** `enhancement`: Clearly describe the feature you are requesting.
 + **Explain the Use Case:** Provide context on why the feature would be beneficial.
-
-## License
-
-This project is licensed under [Your License Here]. Please specify the licensing terms of your project, including any restrictions on commercial use or modification.
