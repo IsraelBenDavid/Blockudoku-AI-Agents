@@ -1,9 +1,9 @@
-# Blockudoku AI Agents
-## Introduction
+# 🤖 Blockudoku AI Agents
+## 📘 Introduction
 
 This project implements various AI agents to play Blockudoku, a puzzle game that combines elements of Sudoku and block puzzles. The objective of the game is to place blocks on a 9x9 grid, filling up rows, columns, or 3x3 squares to clear them from the board. By developing intelligent agents using different AI techniques, this project aims to explore and compare various algorithms in reinforcement learning and search strategies, providing insights into their effectiveness in solving complex problems.
 
-## Table of Contents
+## 🔗 Table of Contents
 + [Project Overview](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#project-overview)
   + [Agents](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#agents)
 + [File Structure](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#file-structure)
@@ -19,7 +19,7 @@ This project implements various AI agents to play Blockudoku, a puzzle game that
   + [Reporting Bugs](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#reporting-bugs)
   + [Requesting Features](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai#requesting-features)
 
-## Project Overview
+## 📖 Project Overview
 ### Agents
 
 The project includes several AI agents implementing different algorithms:
@@ -33,7 +33,7 @@ The project includes several AI agents implementing different algorithms:
 
 These agents interact with the game environment to make decisions, learn from experiences, and improve their gameplay over time. By comparing these different approaches, the project highlights the strengths and weaknesses of each algorithm in the context of the Blockudoku game.
 
-## File Structure
+## 📂 File Structure
 
 + [`main.py`](main.py): Entry point of the application. Parses command-line arguments and initializes agents and game settings.
 
@@ -63,7 +63,7 @@ These agents interact with the game environment to make decisions, learn from ex
 
 + [`README.md`](README.md): Documentation and instructions for the project.
 
-## Installation
+## 📦 Installation
 ### Prerequisites
 
 + **Python 3.6** or higher
@@ -109,7 +109,7 @@ pip install numpy pygame torch tensorflow keras matplotlib
 + For `BaselineAgent` and `PolicyGradientAgent`, ensure that the model weight files are placed in the appropriate `checkpoints/` directory as specified in `Constants.py`.
 + Download pre-trained models or train new models using the provided training scripts.
 
-## Usage
+## ⚙️ Usage
 ### Command-Line Arguments
 
 + `game`: Type of play to run. Options:
@@ -164,7 +164,7 @@ python3 main.py AI_agent -ba AlphaBeta -bd 1 -sa Expectimax -sd 2
 
 + **Threshold Parameter:** The `-t` or --threshold parameter determines when the game switches from using the basic agent to the smart agent based on the number of valid actions.
 
-## Contributing
+## 👥 Contributing
 
 Contributions are welcome! Please follow these guidelines:
 
