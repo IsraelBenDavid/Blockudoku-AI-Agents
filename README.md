@@ -132,4 +132,30 @@ pip install numpy pygame torch tensorflow keras matplotlib
 
 ### Examples
 
++ **Run the Game Manually**
+```bash
+python main.py Manual
+```
+
++ **Run the Game with the AlphaBeta Agent at Depth 2 and Display the Game**
+```bash
+python main.py AI_agent -ba AlphaBeta -bd 2 -d
+```
+
++ **Run 10 Games with the Policy Gradient Agent Without Rendering**
+```bash
+python main.py AI_agent -ba PolicyGradient -n 10
+```
+
++ **Run the Baseline Model**
+```bash
+python main.py Baseline
+```
+
 ### Additional Notes
+
++ **Rendering:** Enabling rendering with the -d flag will slow down the game due to graphical processing. For faster execution, especially during training, run the game without rendering.
+
++ **Model Weights:** Ensure that the model weights are correctly loaded. Paths are defined in `Constants.py`. If you don't have pre-trained models, you may need to train the agents first.
+
++ **Threshold Parameter:** The `-t` or --threshold parameter determines when the game switches from using the basic agent to the smart agent based on the number of valid actions.
