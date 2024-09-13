@@ -10,8 +10,7 @@ PLAYER = 0
 
 BASELINE_WEIGHTS_PATH = "checkpoints/baseline/baseline_model_weights.pth"
 UNIFORM_PG_WEIGHTS_PATH = "checkpoints/pg_unif/uniform_policy_weights.pth"
-POLICY_GRADIENT_WEIGHTS_PATH = "checkpoints/pg_agent_new/policy_gradient_weights.pth"
-
+POLICY_GRADIENT_WEIGHTS_PATH = "checkpoints/pg_agent/policy_gradient_weights.pth"
 
 
 

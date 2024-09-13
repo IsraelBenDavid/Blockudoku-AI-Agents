@@ -49,7 +49,7 @@ def human_play():
 def run_games(num_episodes, basic_agent, smart_agent=None, threshold=8, render=False, render_time=0.0):
     scores = []
     game = Engine.Blockudoku()
-    game.seed(69)
+    # game.seed(541)
     if render:
         pg.init()
         game.setScreen(pg.display.set_mode([int(game.window_size.x), int(game.window_size.y)]))

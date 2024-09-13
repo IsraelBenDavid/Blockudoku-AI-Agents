@@ -226,7 +226,7 @@ class PolicyGradientAgent:
 
     def save_model(self, filepath):
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        torch.save(self.model.to("cpu").state_dict(), filepath) # todo: check if works
+        torch.save(self.model.state_dict(), filepath)  # todo: check if works
 
     def load_model(self, filepath):
         if os.path.isfile(filepath):
