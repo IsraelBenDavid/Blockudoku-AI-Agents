@@ -133,22 +133,22 @@ pip install numpy pygame torch tensorflow keras matplotlib
 
 + **Run the Game Manually**
 ```bash
-python main.py Manual
+python3 main.py Manual
 ```
 
 + **Run the Game with the AlphaBeta Agent at Depth 2 and Display the Game**
 ```bash
-python main.py AI_agent -ba AlphaBeta -bd 2 -d
+python3 main.py AI_agent -ba AlphaBeta -bd 2 -d
 ```
 
 + **Run 10 Games with the Policy Gradient Agent Without Rendering**
 ```bash
-python main.py AI_agent -ba PolicyGradient -n 10
+python3 main.py AI_agent -ba PolicyGradient -n 10
 ```
 
 + **Run the Baseline Model**
 ```bash
-python main.py Baseline
+python3 main.py Baseline
 ```
 
 ### Additional Notes
