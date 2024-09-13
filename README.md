@@ -10,7 +10,7 @@ This project implements various AI agents to play Blockudoku, a puzzle game that
 + [Installation](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#installation)
   + [Prerequisites](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#prerequisites)
   + [Dependencies](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#dependencies)
-  + [Steps](https://github.com/)
+  + [Steps](https://github.cs.huji.ac.il/israelbd/Blockudoku-ai/edit/master/README.md#steps)
 + [Usage](https://github.com/)
   + [Command-Line Arguments](https://github.com/)
   + [Examples](https://github.com/)
@@ -80,29 +80,32 @@ These agents interact with the game environment to make decisions, learn from ex
 
 ### Steps
 
-#### 1. Clone the Repository
+1. **Clone the Repository**
 
 ```bash
 git clone https://github.com/yourusername/blockudoku-ai.git
-cd blockudoku-ai```
+cd blockudoku-ai
+```
 
-#### 2. Create a Virtual Environment (optional but recommended)
+2. **Create a Virtual Environment** (optional but recommended)
 
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+```
 
-3. Install Required Packages
+3. **Install Required Packages**
 
 ```bash
 pip install -r requirements.txt
+```
 
-If requirements.txt is not available, install packages manually:
+If `requirements.txt` is not available, install packages manually:
 
 ```bash
 pip install numpy pygame torch tensorflow keras matplotlib
+```
 
-4. Prepare Model Weights
-
-    For BaselineAgent and PolicyGradientAgent, ensure that the model weight files are placed in the appropriate checkpoints/ directory as specified in Constants.py.
-    Download pre-trained models or train new models using the provided training scripts.
+4. **Prepare Model Weights**
++ For `BaselineAgent` and `PolicyGradientAgent`, ensure that the model weight files are placed in the appropriate `checkpoints/` directory as specified in `Constants.py`.
++ Download pre-trained models or train new models using the provided training scripts.
